@@ -1,24 +1,23 @@
 import { Component } from "react";
-import { Badge, Button, Card, Col, Container, Form, ListGroup, Row } from "react-bootstrap";
+import { Badge, Button, Card, Col, Container, Form, FormLabel, ListGroup, Row } from "react-bootstrap";
 
 
 function createPlayer(name, level) {
     return {playerName: name, level};
 }
 
-function initializeTeams() {
-    return [
-        {players: [], name: "Team 1", totalLevel: 0},
-        {players: [], name: "Team 2", totalLevel: 0},
-        {players: [], name: "Team 3", totalLevel: 0}
-    ]
+function initializeTeams(numOfTeams) {
+    const teamIds = [...Array(numOfTeams).keys()];
+    return teamIds.map((teamId) => {
+        return {players: [], name: `Team ${teamId+1}`, totalLevel: 0};
+    });
 }
 
 class AddPlayerForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            numberOfTeams: 3,
+            numberOfTeams: 4,
             numberOfPlayersInTeam: 11,
             addedPlayers: [],
             playerName: '',
@@ -44,7 +43,12 @@ class AddPlayerForm extends Component {
     handleUserInput(e) {
         const name = e.target.name;
         const value = e.target.value;
-        this.setState({[name]: value});
+        if (e.target.type === 'number') {
+            this.setState({[name]: parseInt(value)});
+        }
+        else {
+            this.setState({[name]: value});
+        }
     }
 
     handleAdd() {
@@ -66,11 +70,10 @@ class AddPlayerForm extends Component {
     }
 
     setTeams() {
-        const teams = initializeTeams();
-        let orderOfInsertion = [0,1,2];
-        for(let i = 0; i < this.state.addedPlayers.length; i+= 3) {
-            const playersToInsert = this.state.addedPlayers.slice(i,i+3);
-            console.log(playersToInsert.map((x) => x.level));
+        const teams = initializeTeams(this.state.numberOfTeams);
+        let orderOfInsertion = [...Array(this.state.numberOfTeams).keys()];
+        for(let i = 0; i < this.state.addedPlayers.length; i+= this.state.numberOfTeams) {
+            const playersToInsert = this.state.addedPlayers.slice(i, i + this.state.numberOfTeams);
             for (let j = 0; j < playersToInsert.length; j++) {
                 const nextTeam = teams[orderOfInsertion[j]];
                 const nextPlayer = playersToInsert[j];
@@ -108,6 +111,20 @@ class AddPlayerForm extends Component {
                             </Col>
                             <Col xs="auto">
                                 <Button variant="outline-primary" type="submit" onClick={(e) => {e.preventDefault(); this.handleAdd()}}>Add</Button>
+                            </Col>
+                            <Col xs={{offset: 2, span: "auto"}}>
+                                <FormLabel>No. of teams</FormLabel>
+                                <Form.Control
+                                        name="numberOfTeams"
+                                        type="number"
+                                        value={this.state.numberOfTeams}
+                                        onChange={(e) => this.handleUserInput(e)} />
+                                <FormLabel>No. of players in a team</FormLabel>
+                                <Form.Control 
+                                        name="numberOfPlayersInTeam"
+                                        type="number"
+                                        value={this.state.numberOfPlayersInTeam}
+                                        onChange={(e) => this.handleUserInput(e)} />
                             </Col>
                         </Row>
                         <Row className="mt-4">
